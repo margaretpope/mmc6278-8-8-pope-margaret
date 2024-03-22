@@ -7,12 +7,17 @@ async function create(req, res, next) {
   // omitting tags is OK
   // create a new post using title, body, and tags
   // return the new post as json and a 200 status
+  if (!title || !body) return res.status(400) .send('entry must include title or body')
+  const post = await Post.create({title, body, tags})
+  res.status(200).json(post)
 }
 
 // should render HTML
 async function get(req, res) {
   try {
     const slug = req.params.slug
+    const post = await Post.findOne({slug: slug}).lean()
+    .populate({path: 'tags'})
     // TODO: Find a single post
     // find a single post by slug and populate 'tags'
     // you will need to use .lean() or .toObject()
@@ -75,6 +80,13 @@ async function update(req, res) {
   try {
     const {title, body, tags} = req.body
     const postId = req.params.id
+    const post = await Post.findOneAndUpdate(
+      {_id: postId},
+      {$set: req.body},
+      {new: true}
+    )
+    if (!title || !body) return res.status(400).send('title or body not found')
+    res.status(200).json(post)
     // TODO: update a post
     // if there is no title or body, return a 400 status
     // omitting tags is OK
@@ -86,7 +98,13 @@ async function update(req, res) {
 }
 
 async function remove(req, res, next) {
-  const postId = req.params.id
+  try{
+    const postId = req.params.id
+    const post = await Post.findByIdAndDelete({_id: postId})
+    res.status(200).send('post deleted')
+  } catch {
+    res.status(500).send('Error deleting post' + err.message)
+  }
   // TODO: Delete a post
   // delete post by id, return a 200 status
 }
