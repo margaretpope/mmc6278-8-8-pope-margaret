@@ -16,7 +16,7 @@ async function create(req, res, next) {
 async function get(req, res) {
   try {
     const slug = req.params.slug
-    const post = await Post.findOne({slug}).populate({path:'tags'}).lean()
+    const post = await Post.findOne(slug).lean().populate('tags')
     // TODO: Find a single post
     // find a single post by slug and populate 'tags'
     // you will need to use .lean() or .toObject()
